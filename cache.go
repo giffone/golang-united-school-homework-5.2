@@ -2,11 +2,6 @@ package cache
 
 import "time"
 
-var (
-	MinTime = time.Unix(-2208988800, 0) // Jan 1, 1900
-	MaxTime = MinTime.Add(1<<63 - 1)
-)
-
 type Cache struct {
 	cache map[string]cache
 }
@@ -25,10 +20,9 @@ func NewCache() Cache {
 // if the deadline of the key/value pair has not been exceeded yet
 func (c Cache) Get(key string) (string, bool) {
 	if v, ok := c.cache[key]; ok {
-		if time.Now().Before(v.deadline) {
+		if v.deadline.IsZero() || time.Now().Before(v.deadline) {
 			return v.value, true
 		}
-		return v.value, false
 	}
 	return "", false
 }
@@ -39,7 +33,7 @@ func (c Cache) Get(key string) (string, bool) {
 func (c *Cache) Put(key, value string) {
 	c.cache[key] = cache{
 		value:    value,
-		deadline: MaxTime,
+		deadline: time.Time{},
 	}
 }
 
@@ -47,7 +41,7 @@ func (c *Cache) Put(key, value string) {
 func (c Cache) Keys() []string {
 	slice := []string{}
 	for k, v := range c.cache {
-		if time.Now().Before(v.deadline) {
+		if v.deadline.IsZero() || time.Now().Before(v.deadline) {
 			slice = append(slice, k)
 		}
 	}
