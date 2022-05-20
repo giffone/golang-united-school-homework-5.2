@@ -25,7 +25,7 @@ func NewCache() Cache {
 // if the deadline of the key/value pair has not been exceeded yet
 func (c Cache) Get(key string) (string, bool) {
 	if v, ok := c.cache[key]; ok {
-		if v.deadline == time.Now() || v.deadline.Before(time.Now()) {
+		if time.Now().Before(v.deadline) {
 			return v.value, true
 		}
 		return v.value, false
@@ -47,7 +47,7 @@ func (c *Cache) Put(key, value string) {
 func (c Cache) Keys() []string {
 	slice := []string{}
 	for k, v := range c.cache {
-		if v.deadline == time.Now() || v.deadline.Before(time.Now()) {
+		if time.Now().Before(v.deadline) {
 			slice = append(slice, k)
 		}
 	}
